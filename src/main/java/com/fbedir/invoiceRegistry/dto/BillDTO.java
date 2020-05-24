@@ -28,6 +28,7 @@ public class BillDTO {
     private String billNo;
     @NotNull
     private Long accountantId;
-    private AccountantDTO accountantDTO;
+    private String accountantName;
+    private String accountantSurname;
     private Boolean billState;
 }

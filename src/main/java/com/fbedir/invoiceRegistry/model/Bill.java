@@ -30,4 +30,15 @@ public class Bill implements Serializable {
     @JoinColumn(name = "ACCOUNTANT_ID", referencedColumnName = "ID", nullable = false)
     private Accountant accountant;
 
+    @Override
+    public String toString() {
+        return "Bill{" +
+                "id=" + id +
+                ", amount=" + amount +
+                ", productName='" + productName + '\'' +
+                ", billNo='" + billNo + '\'' +
+                ", billState=" + billState +
+                ", accountant=" + accountant +
+                '}';
+    }
 }

@@ -10,6 +10,4 @@ import java.util.List;
 public interface BillRepository extends JpaRepository<Bill, Long> {
 
     List<Bill> findOneByAccountantId(Long accountantId);
-
-    List<Bill> findOneByBillState(Boolean state);
 }

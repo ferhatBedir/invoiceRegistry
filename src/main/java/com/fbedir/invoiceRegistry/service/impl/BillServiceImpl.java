@@ -1,16 +1,15 @@
 package com.fbedir.invoiceRegistry.service.impl;
 
 
-import com.fbedir.invoiceRegistry.dto.AccountantDTO;
 import com.fbedir.invoiceRegistry.dto.BillDTO;
 import com.fbedir.invoiceRegistry.model.Accountant;
 import com.fbedir.invoiceRegistry.model.Bill;
 import com.fbedir.invoiceRegistry.model.Owner;
 import com.fbedir.invoiceRegistry.repository.AccountantRepository;
-import com.fbedir.invoiceRegistry.repository.BillRepository;
 import com.fbedir.invoiceRegistry.repository.OwnerRepository;
 import com.fbedir.invoiceRegistry.service.BillService;
 import com.fbedir.invoiceRegistry.util.BillLimitControl;
+import com.fbedir.invoiceRegistry.util.MappingKeyWord;
 import com.fbedir.invoiceRegistry.util.VerificationProcedure;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 
 @Service
@@ -26,8 +26,6 @@ public class BillServiceImpl implements BillService {
 
     @Autowired
     private OwnerRepository ownerRepository;
-    @Autowired
-    private BillRepository billRepository;
     @Autowired
     private AccountantRepository accountantRepository;
     @Autowired
@@ -49,42 +47,18 @@ public class BillServiceImpl implements BillService {
     }
 
     @Override
-    public List<BillDTO> getAllBill() {
-        return convertToBillDTOList(billRepository.findAll());
+    public List<BillDTO> getAll() {
+        return convertToBillDTO(ownerRepository.findAllBill());
     }
 
     @Override
     public List<BillDTO> getBillByState(Boolean state) {
-        return convertToBillDTOList(billRepository.findOneByBillState(state));
+        return convertToBillDTO(ownerRepository.findAllBillByState(state));
     }
 
     @Override
-    public List<BillDTO> getBillByOwnerInfo() {
-        Owner owner = ownerRepository.findFirstByFirstNameIgnoreCaseAndLastNameIgnoreCaseAndEmail("", "", "");
-        return convertToBillDTOList(owner.getBillList());
-
-    }
-
-    private List<BillDTO> convertToBillDTOList(List<Bill> billList) {
-        if (billList == null || billList.isEmpty()) {
-            return null;
-        }
-        List<BillDTO> billDTOList = new ArrayList<>();
-        for (Bill bill : billList) {
-            billDTOList.add(convertToBillDTO(bill));
-        }
-        return billDTOList;
-    }
-
-    private BillDTO convertToBillDTO(Bill bill) {
-        BillDTO billDTO = new BillDTO();
-        billDTO.setId(bill.getId());
-        billDTO.setProductName(bill.getProductName());
-        billDTO.setAmount(bill.getAmount());
-        billDTO.setBillNo(bill.getBillNo());
-        billDTO.setBillState(bill.getBillState());
-        billDTO.setAccountantDTO(convertToAccountDTO(bill.getAccountant()));
-        return billDTO;
+    public List<BillDTO> getBillByOwnerInfo(String firstName, String lastName, String email) {
+        return convertToBillDTO(ownerRepository.findAllBillByOwnerState(firstName, lastName, email));
     }
 
     private Owner createNewOwnerAndNewBill(BillDTO billDTO, boolean isBillSuccess) {
@@ -126,11 +100,24 @@ public class BillServiceImpl implements BillService {
         return accountantRepository.getOne(accountantId);
     }
 
-    private AccountantDTO convertToAccountDTO(Accountant accountant) {
-        AccountantDTO accountantDTO = new AccountantDTO();
-        accountantDTO.setId(accountant.getId());
-        accountantDTO.setName(accountant.getName());
-        accountantDTO.setSurname(accountant.getSurname());
-        return accountantDTO;
+    private List<BillDTO> convertToBillDTO(List<Map<String, Object>> ownerList) {
+        if (ownerList == null || ownerList.isEmpty()) {
+            return new ArrayList<>();
+        }
+        List<BillDTO> billDTOList = new ArrayList<>();
+        for (Map<String, Object> temp : ownerList) {
+            BillDTO billDTO = new BillDTO();
+            billDTO.setFirstName(String.valueOf(temp.get(MappingKeyWord.FIRST_NAME)));
+            billDTO.setLastName(String.valueOf(temp.get(MappingKeyWord.LAST_NAME)));
+            billDTO.setEmail(String.valueOf(temp.get(MappingKeyWord.OWNER_EMAIL)));
+            billDTO.setBillNo(String.valueOf(temp.get(MappingKeyWord.BILL_NO)));
+            billDTO.setProductName(String.valueOf(temp.get(MappingKeyWord.PRODUCT_NAME)));
+            billDTO.setAmount(Double.parseDouble(String.valueOf(temp.get(MappingKeyWord.BILL_AMOUNT))));
+            billDTO.setBillState(Boolean.valueOf(String.valueOf(temp.get(MappingKeyWord.BILL_STATE))));
+            billDTO.setAccountantName(String.valueOf(temp.get(MappingKeyWord.ACCOUNTANT_NAME)));
+            billDTO.setAccountantSurname(String.valueOf(temp.get(MappingKeyWord.ACCOUNTANT_SURNAME)));
+            billDTOList.add(billDTO);
+        }
+        return billDTOList;
     }
 }

@@ -21,7 +21,6 @@ public class AccountantServiceImpl implements AccountantService {
     @Autowired
     private VerificationProcedure verificationProcedure;
 
-
     @Override
     public void addAccountant(AccountantDTO accountantDTO) {
         verificationProcedure.checkData(accountantDTO);

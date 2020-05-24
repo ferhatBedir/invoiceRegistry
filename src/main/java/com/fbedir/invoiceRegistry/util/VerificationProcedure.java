@@ -3,12 +3,12 @@ package com.fbedir.invoiceRegistry.util;
 import com.fbedir.invoiceRegistry.exception.BadRequestException;
 import com.fbedir.invoiceRegistry.exception.ExceptionMessage;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.DataBinder;
 import org.springframework.validation.SmartValidator;
 
-@Configuration
+@Component
 public class VerificationProcedure {
 
     @Autowired

@@ -24,17 +24,20 @@ public class BillController {
 
     @GetMapping("/find/all")
     public List<BillDTO> findAllBill() {
-        return billService.getAllBill();
+        return billService.getAll();
     }
 
-    @GetMapping("/find/bill")
-    public List<BillDTO> findBillByState(@RequestParam(value = "state") Boolean state) {
+    @GetMapping("/find/state")
+    public List<BillDTO> findAllBillByBillState(@RequestParam(value = "value") Boolean state) {
         return billService.getBillByState(state);
     }
 
-    @GetMapping("find/owner/info")
-    public List<BillDTO> findBillByOwnerInfo(){
-        return billService.getBillByOwnerInfo();
+    @GetMapping("/find/info")
+    public List<BillDTO> findAllBillByOwnerInfo(@RequestParam(value = "name") String name,
+                                                @RequestParam(value = "surname") String surname,
+                                                @RequestParam(value = "email") String email) {
+        return billService.getBillByOwnerInfo(name, surname, email);
     }
+
 
 }

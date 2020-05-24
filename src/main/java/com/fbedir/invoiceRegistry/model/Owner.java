@@ -28,5 +28,14 @@ public class Owner implements Serializable {
     @JoinTable(name = "OWNER_BILL", joinColumns = {@JoinColumn(name = "OWNER_ID")}, inverseJoinColumns = {@JoinColumn(name = "BILL_ID")})
     private List<Bill> billList;
 
-
+    @Override
+    public String toString() {
+        return "Owner{" +
+                "id=" + id +
+                ", firstName='" + firstName + '\'' +
+                ", lastName='" + lastName + '\'' +
+                ", email='" + email + '\'' +
+                ", billList=" + billList +
+                '}';
+    }
 }
