@@ -7,6 +7,7 @@ import com.fbedir.invoiceRegistry.model.Accountant;
 import com.fbedir.invoiceRegistry.model.Bill;
 import com.fbedir.invoiceRegistry.model.Owner;
 import com.fbedir.invoiceRegistry.repository.AccountantRepository;
+import com.fbedir.invoiceRegistry.repository.BillRepository;
 import com.fbedir.invoiceRegistry.repository.OwnerRepository;
 import com.fbedir.invoiceRegistry.service.BillService;
 import com.fbedir.invoiceRegistry.util.BillLimitControl;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.List;
 
 
 @Service
@@ -24,6 +26,8 @@ public class BillServiceImpl implements BillService {
 
     @Autowired
     private OwnerRepository ownerRepository;
+    @Autowired
+    private BillRepository billRepository;
     @Autowired
     private AccountantRepository accountantRepository;
     @Autowired
@@ -42,6 +46,45 @@ public class BillServiceImpl implements BillService {
         } else {
             ownerRepository.save(createNewOwnerAndNewBill(billDTO, isBillSuccess));
         }
+    }
+
+    @Override
+    public List<BillDTO> getAllBill() {
+        return convertToBillDTOList(billRepository.findAll());
+    }
+
+    @Override
+    public List<BillDTO> getBillByState(Boolean state) {
+        return convertToBillDTOList(billRepository.findOneByBillState(state));
+    }
+
+    @Override
+    public List<BillDTO> getBillByOwnerInfo() {
+        Owner owner = ownerRepository.findFirstByFirstNameIgnoreCaseAndLastNameIgnoreCaseAndEmail("", "", "");
+        return convertToBillDTOList(owner.getBillList());
+
+    }
+
+    private List<BillDTO> convertToBillDTOList(List<Bill> billList) {
+        if (billList == null || billList.isEmpty()) {
+            return null;
+        }
+        List<BillDTO> billDTOList = new ArrayList<>();
+        for (Bill bill : billList) {
+            billDTOList.add(convertToBillDTO(bill));
+        }
+        return billDTOList;
+    }
+
+    private BillDTO convertToBillDTO(Bill bill) {
+        BillDTO billDTO = new BillDTO();
+        billDTO.setId(bill.getId());
+        billDTO.setProductName(bill.getProductName());
+        billDTO.setAmount(bill.getAmount());
+        billDTO.setBillNo(bill.getBillNo());
+        billDTO.setBillState(bill.getBillState());
+        billDTO.setAccountantDTO(convertToAccountDTO(bill.getAccountant()));
+        return billDTO;
     }
 
     private Owner createNewOwnerAndNewBill(BillDTO billDTO, boolean isBillSuccess) {

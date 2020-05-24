@@ -22,15 +22,19 @@ public class BillController {
         billService.addBill(billDTO);
     }
 
-    @GetMapping("/find/success")
-    public List<BillDTO> findActiveBill() {
-        //return billService.getActiveBill();
-        return null;
+    @GetMapping("/find/all")
+    public List<BillDTO> findAllBill() {
+        return billService.getAllBill();
     }
 
-    @GetMapping("/find/fail")
-    public List<BillDTO> findFailBill() {
-        //return billService.getFailBill();
-        return null;
+    @GetMapping("/find/bill")
+    public List<BillDTO> findBillByState(@RequestParam(value = "state") Boolean state) {
+        return billService.getBillByState(state);
     }
+
+    @GetMapping("find/owner/info")
+    public List<BillDTO> findBillByOwnerInfo(){
+        return billService.getBillByOwnerInfo();
+    }
+
 }

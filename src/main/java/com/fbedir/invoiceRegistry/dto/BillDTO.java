@@ -29,4 +29,5 @@ public class BillDTO {
     @NotNull
     private Long accountantId;
     private AccountantDTO accountantDTO;
+    private Boolean billState;
 }
