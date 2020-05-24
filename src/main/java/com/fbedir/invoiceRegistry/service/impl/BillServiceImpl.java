@@ -4,12 +4,10 @@ package com.fbedir.invoiceRegistry.service.impl;
 import com.fbedir.invoiceRegistry.dto.AccountantDTO;
 import com.fbedir.invoiceRegistry.dto.BillDTO;
 import com.fbedir.invoiceRegistry.model.Accountant;
-import com.fbedir.invoiceRegistry.model.FailBill;
-import com.fbedir.invoiceRegistry.model.RootBill;
-import com.fbedir.invoiceRegistry.model.SuccessBill;
+import com.fbedir.invoiceRegistry.model.Bill;
+import com.fbedir.invoiceRegistry.model.Owner;
 import com.fbedir.invoiceRegistry.repository.AccountantRepository;
-import com.fbedir.invoiceRegistry.repository.FailBillRepository;
-import com.fbedir.invoiceRegistry.repository.SuccessBillRepository;
+import com.fbedir.invoiceRegistry.repository.OwnerRepository;
 import com.fbedir.invoiceRegistry.service.BillService;
 import com.fbedir.invoiceRegistry.util.BillLimitControl;
 import com.fbedir.invoiceRegistry.util.VerificationProcedure;
@@ -18,7 +16,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
-import java.util.List;
 
 
 @Service
@@ -26,9 +23,7 @@ import java.util.List;
 public class BillServiceImpl implements BillService {
 
     @Autowired
-    private SuccessBillRepository successBillRepository;
-    @Autowired
-    private FailBillRepository failBillRepository;
+    private OwnerRepository ownerRepository;
     @Autowired
     private AccountantRepository accountantRepository;
     @Autowired
@@ -39,22 +34,49 @@ public class BillServiceImpl implements BillService {
     @Override
     public void addBill(BillDTO billDTO) {
         verificationProcedure.checkData(billDTO);
-        Boolean isBillSuccess = billLimitControl.checkBillLimit(billDTO.getAccountantId(), billDTO.getAmount());
-        if (isBillSuccess) {
-            successBillRepository.save(convertToRootBill(billDTO, new SuccessBill()));
+        boolean isBillSuccess = billLimitControl.checkBillLimit(billDTO.getAccountantId(), billDTO.getAmount());
+        Owner owner = isExistOwner(billDTO.getFirstName(), billDTO.getLastName(), billDTO.getEmail());
+        if (owner != null) {
+            owner.getBillList().add(createNewBill(billDTO, isBillSuccess));
+            ownerRepository.save(owner);
         } else {
-            failBillRepository.save((convertToRootBill(billDTO, new FailBill())));
+            ownerRepository.save(createNewOwnerAndNewBill(billDTO, isBillSuccess));
         }
     }
 
-    @Override
-    public List<BillDTO> getActiveBill() {
-        return convertToBillDTOList(successBillRepository.findAll());
+    private Owner createNewOwnerAndNewBill(BillDTO billDTO, boolean isBillSuccess) {
+        Owner owner = createNewOwner(billDTO);
+        owner.getBillList().add(createNewBill(billDTO, isBillSuccess));
+        return owner;
     }
 
-    @Override
-    public List<BillDTO> getFailBill() {
-        return convertToBillDTOList(failBillRepository.findAll());
+    private Owner createNewOwner(BillDTO billDTO) {
+        Owner newOwner = new Owner();
+        newOwner.setFirstName(billDTO.getFirstName().toUpperCase());
+        newOwner.setLastName(billDTO.getLastName().toUpperCase());
+        newOwner.setEmail(billDTO.getEmail());
+        newOwner.setBillList(new ArrayList<>());
+        return newOwner;
+    }
+
+    private Bill createNewBill(BillDTO billDTO, boolean isBillSuccess) {
+        Bill newBill = new Bill();
+        newBill.setProductName(billDTO.getProductName());
+        newBill.setAmount(billDTO.getAmount());
+        newBill.setBillNo(billDTO.getBillNo());
+        newBill.setBillState(isBillSuccess);
+        newBill.setAccountant(findAccountantById(billDTO.getAccountantId()));
+        return newBill;
+    }
+
+    private Owner isExistOwner(String firstName, String lastName, String email) {
+        Owner owner = ownerRepository.findFirstByFirstNameIgnoreCaseAndLastNameIgnoreCase(firstName, lastName);
+        if (owner != null) {
+            owner = ownerRepository.findFirstByFirstNameIgnoreCaseAndLastNameIgnoreCaseAndEmail(firstName, lastName, email);
+            return owner;
+        } else {
+            return null;
+        }
     }
 
     private Accountant findAccountantById(Long accountantId) {
@@ -67,41 +89,5 @@ public class BillServiceImpl implements BillService {
         accountantDTO.setName(accountant.getName());
         accountantDTO.setSurname(accountant.getSurname());
         return accountantDTO;
-    }
-
-    private <T extends RootBill> List<BillDTO> convertToBillDTOList(List<T> rootBillList) {
-        if (rootBillList == null || rootBillList.isEmpty()) {
-            return null;
-        }
-
-        List<BillDTO> billDTOList = new ArrayList<>();
-        for (RootBill rootBill : rootBillList) {
-            billDTOList.add(convertToBillDTO(rootBill));
-        }
-        return billDTOList;
-    }
-
-    private <T extends RootBill> BillDTO convertToBillDTO(T rootBill) {
-        BillDTO billDTO = new BillDTO();
-        billDTO.setId(rootBill.getId());
-        billDTO.setFirstName(rootBill.getFirstName());
-        billDTO.setLastName(rootBill.getLastName());
-        billDTO.setEmail(rootBill.getEmail());
-        billDTO.setProductName(rootBill.getProductName());
-        billDTO.setAmount(rootBill.getAmount());
-        billDTO.setBillNo(rootBill.getBillNo());
-        billDTO.setAccountantDTO(convertToAccountDTO(rootBill.getAccountant()));
-        return billDTO;
-    }
-
-    private <T extends RootBill> T convertToRootBill(BillDTO billDTO, T rootBill) {
-        rootBill.setFirstName(billDTO.getFirstName());
-        rootBill.setLastName(billDTO.getLastName());
-        rootBill.setEmail(billDTO.getEmail());
-        rootBill.setProductName(billDTO.getProductName());
-        rootBill.setAmount(billDTO.getAmount());
-        rootBill.setBillNo(billDTO.getBillNo());
-        rootBill.setAccountant(findAccountantById(billDTO.getAccountantId()));
-        return rootBill;
     }
 }

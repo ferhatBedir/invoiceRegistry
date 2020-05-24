@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Api(tags = "SuccessBill Controller API")
+@Api(tags = "Bill Controller API")
 @RestController
 @RequestMapping("/invoice/registry/bill")
 public class BillController {
@@ -24,11 +24,13 @@ public class BillController {
 
     @GetMapping("/find/success")
     public List<BillDTO> findActiveBill() {
-        return billService.getActiveBill();
+        //return billService.getActiveBill();
+        return null;
     }
 
     @GetMapping("/find/fail")
     public List<BillDTO> findFailBill() {
-        return billService.getFailBill();
+        //return billService.getFailBill();
+        return null;
     }
 }
