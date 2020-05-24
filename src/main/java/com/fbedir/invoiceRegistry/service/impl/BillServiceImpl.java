@@ -2,6 +2,8 @@ package com.fbedir.invoiceRegistry.service.impl;
 
 
 import com.fbedir.invoiceRegistry.dto.BillDTO;
+import com.fbedir.invoiceRegistry.dto.ResponseDTO;
+import com.fbedir.invoiceRegistry.exception.BadRequestException;
 import com.fbedir.invoiceRegistry.model.Accountant;
 import com.fbedir.invoiceRegistry.model.Bill;
 import com.fbedir.invoiceRegistry.model.Owner;
@@ -10,6 +12,7 @@ import com.fbedir.invoiceRegistry.repository.OwnerRepository;
 import com.fbedir.invoiceRegistry.service.BillService;
 import com.fbedir.invoiceRegistry.util.BillLimitControl;
 import com.fbedir.invoiceRegistry.util.MappingKeyWord;
+import com.fbedir.invoiceRegistry.util.ResponseMessage;
 import com.fbedir.invoiceRegistry.util.VerificationProcedure;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -34,15 +37,20 @@ public class BillServiceImpl implements BillService {
     private BillLimitControl billLimitControl;
 
     @Override
-    public void addBill(BillDTO billDTO) {
-        verificationProcedure.checkData(billDTO);
-        boolean isBillSuccess = billLimitControl.checkBillLimit(billDTO.getAccountantId(), billDTO.getAmount());
-        Owner owner = isExistOwner(billDTO.getFirstName(), billDTO.getLastName(), billDTO.getEmail());
-        if (owner != null) {
-            owner.getBillList().add(createNewBill(billDTO, isBillSuccess));
-            ownerRepository.save(owner);
-        } else {
-            ownerRepository.save(createNewOwnerAndNewBill(billDTO, isBillSuccess));
+    public ResponseDTO addBill(BillDTO billDTO) {
+        try {
+            verificationProcedure.checkData(billDTO);
+            boolean isBillSuccess = billLimitControl.checkBillLimit(billDTO.getAccountantId(), billDTO.getAmount());
+            Owner owner = isExistOwner(billDTO.getFirstName(), billDTO.getLastName(), billDTO.getEmail());
+            if (owner != null) {
+                owner.getBillList().add(createNewBill(billDTO, isBillSuccess));
+                ownerRepository.save(owner);
+            } else {
+                ownerRepository.save(createNewOwnerAndNewBill(billDTO, isBillSuccess));
+            }
+            return new ResponseDTO(ResponseMessage.SUCCESS);
+        } catch (BadRequestException m) {
+            return new ResponseDTO(ResponseMessage.FAIL);
         }
     }
 

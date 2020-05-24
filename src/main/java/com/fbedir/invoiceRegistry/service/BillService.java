@@ -1,11 +1,12 @@
 package com.fbedir.invoiceRegistry.service;
 
 import com.fbedir.invoiceRegistry.dto.BillDTO;
+import com.fbedir.invoiceRegistry.dto.ResponseDTO;
 
 import java.util.List;
 
 public interface BillService {
-    void addBill(BillDTO billDTO);
+    ResponseDTO addBill(BillDTO billDTO);
 
     List<BillDTO> getAll();
 

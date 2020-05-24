@@ -2,9 +2,12 @@ package com.fbedir.invoiceRegistry.service.impl;
 
 
 import com.fbedir.invoiceRegistry.dto.AccountantDTO;
+import com.fbedir.invoiceRegistry.dto.ResponseDTO;
+import com.fbedir.invoiceRegistry.exception.BadRequestException;
 import com.fbedir.invoiceRegistry.model.Accountant;
 import com.fbedir.invoiceRegistry.repository.AccountantRepository;
 import com.fbedir.invoiceRegistry.service.AccountantService;
+import com.fbedir.invoiceRegistry.util.ResponseMessage;
 import com.fbedir.invoiceRegistry.util.VerificationProcedure;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,9 +25,14 @@ public class AccountantServiceImpl implements AccountantService {
     private VerificationProcedure verificationProcedure;
 
     @Override
-    public void addAccountant(AccountantDTO accountantDTO) {
-        verificationProcedure.checkData(accountantDTO);
-        accountantRepository.save(convertToAccountant(accountantDTO));
+    public ResponseDTO addAccountant(AccountantDTO accountantDTO) {
+        try {
+            verificationProcedure.checkData(accountantDTO);
+            accountantRepository.save(convertToAccountant(accountantDTO));
+            return new ResponseDTO(ResponseMessage.SUCCESS);
+        } catch (BadRequestException m) {
+            return new ResponseDTO(ResponseMessage.FAIL);
+        }
     }
 
     @Override
